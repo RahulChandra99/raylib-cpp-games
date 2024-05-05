@@ -1,6 +1,8 @@
 #include <iostream>
 #include "raylib.h"
 
+int player_score = 0, cpu_score = 0;
+
 class Ball{
     public:
         float x,y;
@@ -14,9 +16,13 @@ class Ball{
             x+=speed_x;
             y+=speed_y;
 
-            if(x+radius >= GetScreenWidth() || x-radius <= 0)
+            if(x+radius >= GetScreenWidth())
             {
-                speed_x = -speed_x;
+                cpu_score++;
+            }
+            if(x+radius <=0)
+            {
+                player_score++;
             }
             if(y+radius >= GetScreenHeight() || y-radius <= 0)
             {
@@ -27,7 +33,7 @@ class Ball{
 
 class Paddle{
     public:
-        float x,y;
+        float x,y;      //position of the paddle
         float width,height;
         int speed;
         void Draw(){
@@ -67,27 +73,45 @@ class Paddle{
 
 };
 
+class CPUPaddle : public Paddle
+{
+   public:
+    
+};
+
+
 Ball ball;
 Paddle player;
+CPUPaddle CPU;
 
 int main()
 {
+    //set window size
     const int screen_width = 1280;
     const int screen_height = 800;
-    InitWindow(screen_width,screen_height,"Pong");
+    InitWindow(screen_width,screen_height,"Retro Games - Pong");
     SetTargetFPS(60);    
 
+    //Ball Specs
     ball.radius = 20;
     ball.x = screen_width/2;
     ball.y = screen_height/2;
     ball.speed_x = 7;
     ball.speed_y = 7;
 
+    //player paddle specs(on RHS)
     player.width = 25;
     player.height = 120;
     player.x = screen_width-player.width-10;
     player.y = screen_height/2 - player.height/2;
     player.speed = 6;
+
+    //CPU paddle specs(on LHS)
+    CPU.width = 25;
+    CPU.height = 120;
+    CPU.x = 10;
+    CPU.y = screen_height/2 - CPU.height/2;
+    CPU.speed = 6;
 
     while(!WindowShouldClose())
     {
@@ -101,8 +125,18 @@ int main()
         ball.Draw();
     
         player.Draw();
+        CPU.Draw();
 
-        DrawRectangle(10,screen_height/2-60,25,120,WHITE);
+        //check for collision
+        if(CheckCollisionCircleRec(Vector2{ball.x,ball.y},ball.radius,Rectangle{player.x,player.y,player.width,player.height}))
+        {
+            ball.speed_x *= -1;
+        }
+        if(CheckCollisionCircleRec(Vector2{ball.x,ball.y},ball.radius,Rectangle{CPU.x,CPU.y,CPU.width,CPU.height}))
+        {
+            ball.speed_x *= -1;
+        }
+        
         DrawLine(screen_width/2,0,screen_width/2,screen_height,WHITE);
 
         
